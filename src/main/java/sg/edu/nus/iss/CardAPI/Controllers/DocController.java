@@ -1,7 +1,10 @@
 package sg.edu.nus.iss.CardAPI.Controllers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -28,12 +31,10 @@ public class DocController {
     @Autowired
     DocInterface dService;
 
-    private List<Card> cards = new ArrayList<>();
+    private Map<String,List<Card>> cards = new HashMap<>();
 
     @PostMapping("/deck")
     public String getDeck(Model model){
-
-        this.cards.clear();
 
        Deck deck = dService.createDeck(); 
 
@@ -47,13 +48,19 @@ public class DocController {
 
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + id + " " + number);
 
-        Deck deck = dService.drawCards(id, Integer.valueOf(number));
+        Deck deck = dService.drawCards(id, Integer.valueOf(number));                
 
-        for(Card c : deck.getCards()){
-            cards.add(c);
+        if(cards.containsKey(id)){
+
+            List<Card> values = cards.get(id);
+            deck.getCards().stream().forEach(c->values.add(c));
+            cards.put(id,values);
+            deck.setCards(cards.get(id));
         }
-
-        deck.setCards(cards);        
+        else{
+            cards.put(id, deck.getCards());
+        }
+ 
         model.addAttribute("deck", deck);
 
 
